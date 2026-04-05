@@ -1,0 +1,56 @@
+---
+- name: Simple PHP Testing
+  hosts: test
+  become: yes
+  
+  vars:
+    deploy_state: started   # or 'absent' for cleanup
+    force_remove: yes
+
+  tasks:
+
+    - name: Install Git
+      apt:
+        name: git
+        state: present
+        update_cache: yes
+    
+    - name: Clone PHP project
+      git:
+        repo: https://github.com/Jagdish-Patel1824/projCert.git
+        dest: /home/ubuntu/project
+        version: master
+
+    - name: Install Docker
+      apt:
+        name: docker.io
+        state: present
+        update_cache: yes
+
+    - name: Start Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+    
+    - name: Remove Old Container 
+      docker_container:
+        name: PHP_website
+        state: absent
+        force_kill: yes
+
+    - name: Ensure container
+      docker_container:
+        name: PHP_website
+        image: php:8.2-apache
+        state: "{{ deploy_state }}"
+        force_kill: "{{ force_remove }}"
+        restart_policy: always
+        ports:
+          - "80:80"
+        volumes:
+          - /home/ubuntu/project/website:/var/www/html
+
+    - name: Access Website
+      debug:
+        msg: "Deployed on http://{{ ansible_host }}:80"
