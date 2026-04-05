@@ -10,6 +10,7 @@ filters:
 keyed_groups:
   - key: "tags.Role"
     prefix: ""
+    separator: ""
 
 compose:
   ansible_host: public_ip_address
