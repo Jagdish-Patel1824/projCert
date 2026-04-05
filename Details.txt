@@ -1,0 +1,300 @@
+IPs to cross check screenshoot
+
+Master - 50.17.199.119
+Slave/test - 13.223.219.79
+production - 34.236.131.176
+
+
+Steps:-
+
+1. Created and Setup 3 Instances through terraform
+2. Installed tools (Jenkins, Ansible, JAVA) on Master node.
+3. Created 2 Ansible Playbook 1 for test and 1 for production
+4. Created Dynamic Inventory 
+5. Setup Webhooks
+6. Created pipeline 
+7. Executed it.
+
+NOTE- I have used same playbook to deploy on test server and also to delete container
+ when I selected ABORT.  
+
+
+
+Result of case1 when I selected Deploy 
+
+
+Started by GitHub push by Jagdish-Patel1824
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/Capstone
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Download Repo)
+[Pipeline] git
+The recommended git tool is: NONE
+No credentials specified
+ > /usr/bin/git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/Capstone/.git # timeout=10
+Fetching changes from the remote Git repository
+ > /usr/bin/git config remote.origin.url https://github.com/Jagdish-Patel1824/projCert.git # timeout=10
+Fetching upstream changes from https://github.com/Jagdish-Patel1824/projCert.git
+ > /usr/bin/git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > /usr/bin/git fetch --tags --force --progress -- https://github.com/Jagdish-Patel1824/projCert.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > /usr/bin/git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision 261ec1b1dbaf3126d4e5bcaac2235b9193f0433c (refs/remotes/origin/master)
+ > /usr/bin/git config core.sparsecheckout # timeout=10
+ > /usr/bin/git checkout -f 261ec1b1dbaf3126d4e5bcaac2235b9193f0433c # timeout=10
+ > /usr/bin/git branch -a -v --no-abbrev # timeout=10
+ > /usr/bin/git branch -D master # timeout=10
+ > /usr/bin/git checkout -b master 261ec1b1dbaf3126d4e5bcaac2235b9193f0433c # timeout=10
+Commit message: "Fix formatting in playbook_test.yml"
+ > /usr/bin/git rev-list --no-walk f3376ba605acda97481df5e5b88842d8abf7d1d3 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy to test)
+[Pipeline] withCredentials
+Masking supported pattern matches of $ANSIBLE_PRIVATE_KEY_FILE
+[Pipeline] {
+[Pipeline] sh
++ export ANSIBLE_HOST_KEY_CHECKING=False
++ ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook_test.yml
+
+PLAY [Simple PHP Testing] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Install Git] *************************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Clone PHP project] *******************************************************
+changed: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Install Docker] **********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Start Docker] ************************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Remove Old Container] ****************************************************
+changed: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Ensure container] ********************************************************
+changed: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Access Website] **********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com] => {
+    "msg": "Deployed on http://13.223.219.79:80"
+}
+
+PLAY RECAP *********************************************************************
+ec2-13-223-219-79.compute-1.amazonaws.com : ok=8    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Approval)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] input
+Input requested
+Approved by Master
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy to Production)
+[Pipeline] withCredentials
+Masking supported pattern matches of $ANSIBLE_PRIVATE_KEY_FILE
+[Pipeline] {
+[Pipeline] sh
++ export ANSIBLE_HOST_KEY_CHECKING=False
++ ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook_prod.yml
+
+PLAY [Simple PHP Testing] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [ec2-34-236-131-176.compute-1.amazonaws.com]
+
+TASK [Install Git] *************************************************************
+ok: [ec2-34-236-131-176.compute-1.amazonaws.com]
+
+TASK [Clone PHP project] *******************************************************
+changed: [ec2-34-236-131-176.compute-1.amazonaws.com]
+
+TASK [Install Docker] **********************************************************
+ok: [ec2-34-236-131-176.compute-1.amazonaws.com]
+
+TASK [Start Docker] ************************************************************
+ok: [ec2-34-236-131-176.compute-1.amazonaws.com]
+
+TASK [Remove Old Container] ****************************************************
+changed: [ec2-34-236-131-176.compute-1.amazonaws.com]
+
+TASK [Docker Container] ********************************************************
+changed: [ec2-34-236-131-176.compute-1.amazonaws.com]
+
+TASK [Access Website] **********************************************************
+ok: [ec2-34-236-131-176.compute-1.amazonaws.com] => {
+    "msg": "Deployed on http://34.236.131.176:80"
+}
+
+PLAY RECAP *********************************************************************
+ec2-34-236-131-176.compute-1.amazonaws.com : ok=8    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
+
+
+
+
+
+Result of case2 when I selected Abort 
+
+Started by GitHub push by Jagdish-Patel1824
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins in /var/lib/jenkins/workspace/Capstone
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Download Repo)
+[Pipeline] git
+The recommended git tool is: NONE
+No credentials specified
+ > /usr/bin/git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/Capstone/.git # timeout=10
+Fetching changes from the remote Git repository
+ > /usr/bin/git config remote.origin.url https://github.com/Jagdish-Patel1824/projCert.git # timeout=10
+Fetching upstream changes from https://github.com/Jagdish-Patel1824/projCert.git
+ > /usr/bin/git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > /usr/bin/git fetch --tags --force --progress -- https://github.com/Jagdish-Patel1824/projCert.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > /usr/bin/git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision 1543f3e7bf041ac73fd135c7534e437dce511c58 (refs/remotes/origin/master)
+ > /usr/bin/git config core.sparsecheckout # timeout=10
+ > /usr/bin/git checkout -f 1543f3e7bf041ac73fd135c7534e437dce511c58 # timeout=10
+ > /usr/bin/git branch -a -v --no-abbrev # timeout=10
+ > /usr/bin/git branch -D master # timeout=10
+ > /usr/bin/git checkout -b master 1543f3e7bf041ac73fd135c7534e437dce511c58 # timeout=10
+Commit message: "Rename playbook for PHP testing to production server"
+ > /usr/bin/git rev-list --no-walk 261ec1b1dbaf3126d4e5bcaac2235b9193f0433c # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy to test)
+[Pipeline] withCredentials
+Masking supported pattern matches of $ANSIBLE_PRIVATE_KEY_FILE
+[Pipeline] {
+[Pipeline] sh
++ export ANSIBLE_HOST_KEY_CHECKING=False
++ ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook_test.yml
+
+PLAY [Simple PHP Testing] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Install Git] *************************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Clone PHP project] *******************************************************
+changed: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Install Docker] **********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Start Docker] ************************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Remove Old Container] ****************************************************
+changed: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Ensure container] ********************************************************
+changed: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Access Website] **********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com] => {
+    "msg": "Deployed on http://13.223.219.79:80"
+}
+
+PLAY RECAP *********************************************************************
+ec2-13-223-219-79.compute-1.amazonaws.com : ok=8    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Approval)
+[Pipeline] script
+[Pipeline] {
+[Pipeline] input
+Input requested
+Approved by Master
+[Pipeline] echo
+❌ User selected ABORT. Cleaning test server...
+[Pipeline] withCredentials
+Masking supported pattern matches of $ANSIBLE_PRIVATE_KEY_FILE
+[Pipeline] {
+[Pipeline] sh
++ export ANSIBLE_HOST_KEY_CHECKING=False
++ ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook_test.yml -e deploy_state=absent
+
+PLAY [Simple PHP Testing] ******************************************************
+
+TASK [Gathering Facts] *********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Install Git] *************************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Clone PHP project] *******************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Install Docker] **********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Start Docker] ************************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Remove Old Container] ****************************************************
+changed: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Ensure container] ********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com]
+
+TASK [Access Website] **********************************************************
+ok: [ec2-13-223-219-79.compute-1.amazonaws.com] => {
+    "msg": "Deployed on http://13.223.219.79:80"
+}
+
+PLAY RECAP *********************************************************************
+ec2-13-223-219-79.compute-1.amazonaws.com : ok=8    changed=1    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
+[Pipeline] }
+[Pipeline] // withCredentials
+[Pipeline] echo
+✅ Test environment cleaned successfully
+[Pipeline] }
+[Pipeline] // script
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Deploy to Production)
+Stage "Deploy to Production" skipped due to when conditional
+[Pipeline] getContext
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: ABORTED

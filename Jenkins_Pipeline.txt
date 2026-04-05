@@ -1,0 +1,66 @@
+pipeline {
+    agent any   
+
+    stages {
+
+        stage('Download Repo') {
+            steps {
+                git 'https://github.com/Jagdish-Patel1824/projCert.git'
+            }
+        }
+        
+        stage('Deploy to test') {
+            steps {
+                withCredentials([file(credentialsId: 'ec2-key', variable: 'ANSIBLE_PRIVATE_KEY_FILE')]) {
+                    sh '''
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook_test.yml
+                    '''
+                }
+            }
+        }
+        
+        stage('Approval') {
+            steps {
+                script {
+                    def choice = input(
+                        message: 'Deploy to Production or Abort?',
+                        parameters: [
+                            choice(name: 'ACTION', choices: ['Deploy', 'Abort'], description: 'Select action')
+                        ]
+                    )
+                    env.DEPLOY_ACTION = choice
+                    
+                    if (choice == 'Abort') {
+                        echo "❌ User selected ABORT. Cleaning test server..."
+                        withCredentials([file(credentialsId: 'ec2-key', variable: 'ANSIBLE_PRIVATE_KEY_FILE')]) {
+                            sh '''
+                            export ANSIBLE_HOST_KEY_CHECKING=False
+                            ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook_test.yml -e "deploy_state=absent"
+                            '''
+                        }
+                        currentBuild.result = 'ABORTED'
+                        echo "✅ Test environment cleaned successfully"
+                        return
+                    }
+                }
+            }
+        }
+        
+        stage("Deploy to Production"){
+            when {
+                expression {
+                return env.DEPLOY_ACTION == 'Deploy'
+                }
+            }
+            steps{
+               withCredentials([file(credentialsId: 'ec2-key', variable: 'ANSIBLE_PRIVATE_KEY_FILE')]) {
+                    sh '''
+                    export ANSIBLE_HOST_KEY_CHECKING=False
+                    ansible-playbook -i ansible/inventory.aws_ec2.yml ansible/playbook_prod.yml
+                    '''
+                } 
+            }
+        }
+    }
+}
